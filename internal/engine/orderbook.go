@@ -35,7 +35,6 @@ type level struct {
 	Order []*Order
 }
 
-// NewBook creates an empty order book.
 func NewBook(symbol string) *Book {
 	orders := make(map[uint64]*Order)
 	return &Book{
@@ -47,8 +46,41 @@ func NewBook(symbol string) *Book {
 // AddLimit inserts a limit order into the book, matching it against the
 // opposite side first. It returns the trades that were executed (empty if
 // the order did not cross) — any remainder rests in the book.
-func (b *Book) AddLimit(o Order) []Trade {
-	panic("not implemented")
+func (b *Book) AddLimit(odr Order) []Trade {
+	b.seq++
+	odr.Seq = b.seq
+	b.orders[odr.ID] = &odr
+
+	switch odr.Side {
+	case Buy:
+		b.bid = b.insertLevel(b.bid, &odr)
+	case Sell:
+		b.ask = b.insertLevel(b.ask, &odr)
+	}
+
+	return nil
+}
+
+// insertLevel places odr into levels: if a level with odr.Price already
+// exists, the order is appended to that level's FIFO queue; otherwise a new
+// level is created and appended. Returns the (possibly grown) slice.
+func (b *Book) insertLevel(levels []*level, odr *Order) []*level {
+	found := false
+	for _, l := range levels {
+		if l.Price == odr.Price {
+			l.Order = append(l.Order, odr)
+			found = true
+			break
+		}
+	}
+	if !found {
+		lvl := &level{
+			Order: []*Order{odr},
+			Price: odr.Price,
+		}
+		levels = append(levels, lvl)
+	}
+	return levels
 }
 
 // BestBid returns the highest buy price and true, or 0 and false if empty.
