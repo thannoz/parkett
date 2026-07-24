@@ -94,7 +94,7 @@ func (b *Book) BestAsk() (price int64, ok bool) {
 }
 
 // Cancel removes a resting order from the book. It returns false if the
-// order is unknown (already filled, cancelled, or never existed).
+// order is unknown (already filled, canceled, or never existed).
 func (b *Book) Cancel(orderID uint64) bool {
 	panic("not implemented")
 }
