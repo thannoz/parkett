@@ -51,7 +51,6 @@ func TestAddLimit_SortedInsert_Bids(t *testing.T) {
 			t.Errorf("b.bid[%d].Price = %d, want %d", i, got, want)
 		}
 	}
-
 }
 
 func TestAddLimit_SortedInsert_Asks(t *testing.T) {
