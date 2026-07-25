@@ -104,7 +104,6 @@ func (b *Book) BestBid() (price int64, ok bool) {
 		return 0, false
 	}
 	return b.bid[0].Price, true
-
 }
 
 // BestAsk returns the lowest sell price and true, or 0 and false if empty.
