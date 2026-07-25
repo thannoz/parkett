@@ -77,3 +77,77 @@ func TestAddLimit_SortedInsert_Asks(t *testing.T) {
 		}
 	}
 }
+
+func TestBestBid_Empty(t *testing.T) {
+	b := NewBook("XOM")
+
+	gotPrice, gotOk := b.BestBid()
+	if gotOk != false {
+		t.Errorf("ok = %v, want false", gotOk)
+	}
+
+	if gotPrice != 0 {
+		t.Fatalf("price = %d, want %d", gotPrice, 0)
+	}
+}
+
+func TestBestBid_NotEmpty(t *testing.T) {
+	b := NewBook("APPL")
+
+	orders := []Order{
+		{Side: Buy, Price: 10100},
+	}
+	for _, odr := range orders {
+		b.AddLimit(odr)
+	}
+
+	gotPrice, gotOk := b.BestBid()
+	if gotOk != true {
+		t.Errorf("ok = %v, want true", gotOk)
+	}
+
+	if gotPrice != 10100 {
+		t.Errorf("price %d, want %d", gotPrice, 10100)
+	}
+}
+
+func TestBestBid_MoreBids(t *testing.T) {
+	b := NewBook("APPL")
+
+	orders := []Order{
+		{ID: 1, Side: Buy, Price: 10100},
+		{ID: 2, Side: Buy, Price: 20100},
+	}
+	for _, odr := range orders {
+		b.AddLimit(odr)
+	}
+
+	gotBestBid, gotOk := b.BestBid()
+	if gotOk != true {
+		t.Errorf("ok = %v, want true", gotOk)
+	}
+	if gotBestBid != 20100 {
+		t.Errorf("best bid = %d, want %d", gotBestBid, 20100)
+	}
+}
+
+func TestBestAsk_MoreAsks(t *testing.T) {
+	b := NewBook("APPL")
+
+	orders := []Order{
+		{ID: 1, Side: Sell, Price: 120},
+		{ID: 2, Side: Sell, Price: 105},
+	}
+	for _, odr := range orders {
+		b.AddLimit(odr)
+	}
+
+	gotBestAsk, gotOk := b.BestAsk()
+	if gotOk != true {
+		t.Errorf("ok = %v, want false", gotOk)
+	}
+
+	if gotBestAsk != 105 {
+		t.Errorf("best ask = %d, want %d", gotBestAsk, 105)
+	}
+}

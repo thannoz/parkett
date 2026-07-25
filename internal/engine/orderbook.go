@@ -100,12 +100,19 @@ func (b *Book) insertLevel(levels []*level, odr *Order, ascending bool) []*level
 
 // BestBid returns the highest buy price and true, or 0 and false if empty.
 func (b *Book) BestBid() (price int64, ok bool) {
-	panic("not implemented")
+	if len(b.bid) == 0 {
+		return 0, false
+	}
+	return b.bid[0].Price, true
+
 }
 
 // BestAsk returns the lowest sell price and true, or 0 and false if empty.
 func (b *Book) BestAsk() (price int64, ok bool) {
-	panic("not implemented")
+	if len(b.ask) == 0 {
+		return 0, false
+	}
+	return b.ask[0].Price, true
 }
 
 // Cancel removes a resting order from the book. It returns false if the
