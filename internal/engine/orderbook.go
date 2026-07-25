@@ -53,9 +53,9 @@ func (b *Book) AddLimit(odr Order) []Trade {
 
 	switch odr.Side {
 	case Buy:
-		b.bid = b.insertLevel(b.bid, &odr)
+		b.bid = b.insertLevel(b.bid, &odr, false)
 	case Sell:
-		b.ask = b.insertLevel(b.ask, &odr)
+		b.ask = b.insertLevel(b.ask, &odr, true)
 	}
 
 	return nil
@@ -64,7 +64,7 @@ func (b *Book) AddLimit(odr Order) []Trade {
 // insertLevel places odr into levels: if a level with odr.Price already
 // exists, the order is appended to that level's FIFO queue; otherwise a new
 // level is created and appended. Returns the (possibly grown) slice.
-func (b *Book) insertLevel(levels []*level, odr *Order) []*level {
+func (b *Book) insertLevel(levels []*level, odr *Order, ascending bool) []*level {
 	found := false
 	for _, l := range levels {
 		if l.Price == odr.Price {
@@ -78,7 +78,22 @@ func (b *Book) insertLevel(levels []*level, odr *Order) []*level {
 			Order: []*Order{odr},
 			Price: odr.Price,
 		}
-		levels = append(levels, lvl)
+		idx := len(levels)
+		for i, l := range levels {
+			belongBefore := false
+			if ascending {
+				belongBefore = l.Price > odr.Price
+			} else {
+				belongBefore = l.Price < odr.Price
+			}
+			if belongBefore {
+				idx = i
+				break
+			}
+		}
+		levels = append(levels, nil)
+		copy(levels[idx+1:], levels[idx:])
+		levels[idx] = lvl
 	}
 	return levels
 }
