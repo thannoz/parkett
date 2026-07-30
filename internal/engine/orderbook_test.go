@@ -107,7 +107,7 @@ func TestBestBid_NotEmpty(t *testing.T) {
 	}
 
 	if gotPrice != 10100 {
-		t.Errorf("price %d, want %d", gotPrice, 10100)
+		t.Errorf("price = %d, want %d", gotPrice, 10100)
 	}
 }
 
@@ -128,6 +128,37 @@ func TestBestBid_MoreBids(t *testing.T) {
 	}
 	if gotBestBid != 20100 {
 		t.Errorf("best bid = %d, want %d", gotBestBid, 20100)
+	}
+}
+
+func TestBestAsk_Empty(t *testing.T) {
+	b := NewBook("APPL")
+
+	gotPrice, gotOk := b.BestAsk()
+	if gotOk != false {
+		t.Errorf("ok = %v, want false", gotOk)
+	}
+	if gotPrice != 0 {
+		t.Errorf("price = %d, want %d", gotPrice, 0)
+	}
+}
+
+func TestBestAsk_NotEmpty(t *testing.T) {
+	b := NewBook("APPL")
+	orders := []Order{
+		{Side: Sell, Price: 120},
+	}
+
+	for _, odr := range orders {
+		b.AddLimit(odr)
+	}
+
+	gotPrice, gotOk := b.BestAsk()
+	if gotOk != true {
+		t.Errorf("ok = %v, want false", gotOk)
+	}
+	if gotPrice != 120 {
+		t.Errorf("price = %d, want %d", gotPrice, 120)
 	}
 }
 
