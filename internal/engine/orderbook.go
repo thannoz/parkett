@@ -51,14 +51,66 @@ func (b *Book) AddLimit(odr Order) []Trade {
 	odr.Seq = b.seq
 	b.orders[odr.ID] = &odr
 
+	trades := []Trade{}
+
 	switch odr.Side {
 	case Buy:
-		b.bid = b.insertLevel(b.bid, &odr, false)
+		bestAsk, ok := b.BestAsk()
+		if ok && odr.Price >= bestAsk {
+			maker := b.ask[0].Order[0]
+			qty := min(odr.Qty, maker.Qty)
+			trades = append(trades, Trade{
+				TakerOrderID: odr.ID,
+				MakerOrderID: maker.ID,
+				Price:        maker.Price,
+				Qty:          qty,
+			})
+
+			odr.Qty -= qty
+			maker.Qty -= qty
+
+			if maker.Qty == 0 {
+				b.ask[0].Order = b.ask[0].Order[1:]
+				if len(b.ask[0].Order) == 0 {
+					b.ask = b.ask[1:]
+				}
+				delete(b.orders, maker.ID)
+			}
+		}
 	case Sell:
-		b.ask = b.insertLevel(b.ask, &odr, true)
+		bestBid, ok := b.BestBid()
+		if ok && odr.Price <= bestBid {
+			maker := b.bid[0].Order[0]
+			qty := min(odr.Qty, maker.Qty)
+			trades = append(trades, Trade{
+				TakerOrderID: odr.ID,
+				MakerOrderID: maker.ID,
+				Price:        maker.Price,
+				Qty:          qty,
+			})
+			odr.Qty -= qty
+			maker.Qty -= qty
+
+			if maker.Qty == 0 {
+				b.bid[0].Order = b.bid[0].Order[1:]
+				if len(b.bid[0].Order) == 0 {
+					b.bid = b.bid[1:]
+				}
+				delete(b.orders, maker.ID)
+			}
+		}
+
+	}
+	if odr.Qty > 0 {
+		switch odr.Side {
+		case Buy:
+			b.bid = b.insertLevel(b.bid, &odr, false)
+		case Sell:
+			b.ask = b.insertLevel(b.ask, &odr, true)
+		}
 	}
 
-	return nil
+	return trades
 }
 
 // insertLevel places odr into levels: if a level with odr.Price already

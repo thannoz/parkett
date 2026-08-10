@@ -95,7 +95,7 @@ func TestBestBid_NotEmpty(t *testing.T) {
 	b := NewBook("APPL")
 
 	orders := []Order{
-		{Side: Buy, Price: 10100},
+		{ID: 1, Side: Buy, Price: 10100, Qty: 5},
 	}
 	for _, odr := range orders {
 		b.AddLimit(odr)
@@ -107,7 +107,7 @@ func TestBestBid_NotEmpty(t *testing.T) {
 	}
 
 	if gotPrice != 10100 {
-		t.Errorf("price %d, want %d", gotPrice, 10100)
+		t.Errorf("price = %d, want %d", gotPrice, 10100)
 	}
 }
 
@@ -115,8 +115,8 @@ func TestBestBid_MoreBids(t *testing.T) {
 	b := NewBook("APPL")
 
 	orders := []Order{
-		{ID: 1, Side: Buy, Price: 10100},
-		{ID: 2, Side: Buy, Price: 20100},
+		{ID: 1, Side: Buy, Price: 10100, Qty: 5},
+		{ID: 2, Side: Buy, Price: 20100, Qty: 5},
 	}
 	for _, odr := range orders {
 		b.AddLimit(odr)
@@ -131,12 +131,43 @@ func TestBestBid_MoreBids(t *testing.T) {
 	}
 }
 
+func TestBestAsk_Empty(t *testing.T) {
+	b := NewBook("APPL")
+
+	gotPrice, gotOk := b.BestAsk()
+	if gotOk != false {
+		t.Errorf("ok = %v, want false", gotOk)
+	}
+	if gotPrice != 0 {
+		t.Errorf("price = %d, want %d", gotPrice, 0)
+	}
+}
+
+func TestBestAsk_NotEmpty(t *testing.T) {
+	b := NewBook("APPL")
+	orders := []Order{
+		{ID: 1, Side: Sell, Price: 120, Qty: 5},
+	}
+
+	for _, odr := range orders {
+		b.AddLimit(odr)
+	}
+
+	gotPrice, gotOk := b.BestAsk()
+	if gotOk != true {
+		t.Errorf("ok = %v, want false", gotOk)
+	}
+	if gotPrice != 120 {
+		t.Errorf("price = %d, want %d", gotPrice, 120)
+	}
+}
+
 func TestBestAsk_MoreAsks(t *testing.T) {
 	b := NewBook("APPL")
 
 	orders := []Order{
-		{ID: 1, Side: Sell, Price: 120},
-		{ID: 2, Side: Sell, Price: 105},
+		{ID: 1, Side: Sell, Price: 120, Qty: 5},
+		{ID: 2, Side: Sell, Price: 105, Qty: 5},
 	}
 	for _, odr := range orders {
 		b.AddLimit(odr)
